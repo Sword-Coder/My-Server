@@ -145,6 +145,7 @@ app.post('/removeBorrowers', (req, res) => {
   });
 })
 
+
 //This is my api for getting the data list for the names of my library users
 const viewUrl = "_utils/#database/library_db/names/all?limit=20&reduce=false"
 app.get('/getNames', (req, res) =>{
@@ -166,21 +167,106 @@ app.get('/getNames', (req, res) =>{
 })
 
 
+
+// This is where I get save my book entry.
+app.post('/saveBook', (req, res)=>{
+  /*remotedb.uuid().then((ids) => {
+    const id = ids[0]
+    couch.insert('names', {
+    "_uid": req.body.borrowerid,
+    "type": req.body.type,
+    "firstName": req.body.firstName,
+    "lastName": req.body.lastName,
+    "phoneNumber": req.body.phoneNumber,
+    "email": req.body.email,
+    "birthdate": req.body.birthdate,
+    "status": req.body.status
+    }).then((result)=>{
+      console.log(result)
+      res.header("Content-Type", 'application/json')
+      res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
+    })
+  })*/
+  remotedb.upsert(req.body.bookid, (doc)=>{
+    /*if(!doc.hasOwnProperty('names')){
+      doc.names = []
+    }
+    doc.names.push({ 
+    "uid": req.body.borrowerid,
+    "type": req.body.type,
+    "firstName": req.body.firstName,
+    "lastName": req.body.lastName,
+    "phoneNumber": req.body.phoneNumber,
+    "email": req.body.email,
+    "birthdate": req.body.birthdate,
+    "status": req.body.status})
+    return doc;*/
+    doc.bookid = req.body.bookid,
+    doc.type = req.body.type,
+    doc.bookTitle = req.body.bookTitle,
+    doc.bookAuthor = req.body.bookAuthor,
+    doc.bookCategories = req.body.bookCategories,
+    doc.bookSubCategories = req.body.bookSubCategories,
+    doc.bookCover = req.body.bookCover,
+    doc.referenceNumber = req.body.referenceNumber
+    return doc
+  }).then((result)=>{
+    console.log(result)
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
+  })
+})
+
+
 //This is my api for getting the data for my books
 const viewUrl2 = "_utils/#database/library_db/books/all?limit=20&reduce=false"
 app.get('/getBooks',(req, res) =>{
-  remotedb.get('books', viewUrl2).then((result) =>{
-    console.log(result)
-    res.header("Content-Type", 'application/json')
-    res.send(JSON.stringify(result))
+  remotedb.query('temp/booksByTitle', {include_docs: true}).then((result) => {
+    books = []
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((book) => {
+    books.push(book.doc)
+    })
+    res.header("Content-Type", "application/json")
+    res.send(books)
   })
 })
 
 //Need to make an api that removes or deletes a book in the database and respond back with a new array list of users.
-app.post('/removeBook'), (req, res) => {
-  
-}
+app.post('/removeBook', (req, res) => {
+  console.log(req)
+  remotedb.get(req.body.bookid, function(err, doc) {
+    if (err) { return console.log(err); }
+    remotedb.remove(doc, function(err, response) {
+      if (err) { return console.log(err); }
+      // handle response
+    });
+  }).then((result)=>{
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Successfully Removed Book: ' + req.body.id}))
+  });
+})
 
+app.post('/updateBook'), (req, res) => {
+  remotedb.get(req.body.bookid, (err, doc)=>{
+    if (err) {return console.log(err);}
+    remotedb.put({
+      _id: req.body.bookid,
+      _rev: doc._rev,
+      type: req.body.type,
+      bookTitle: req.body.bookTitle,
+      bookAuthor: req.body.bookAuthor,
+      bookCategories: req.body.bookCategories,
+      bookSubCategories: req.body.bookSubCategories,
+      bookCover: req.body.bookCoverFile,
+      referenceNumber: req.body.referenceNumber,
+      })
+    return doc;
+  }).then((result)=>{
+    console.log(result)
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Updated ' + req.body.bookTitle + ' by ' + req.body.bookAuthor}))
+  })
+}
 
 
 //Global testing
