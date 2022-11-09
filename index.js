@@ -1,4 +1,5 @@
 const app = require('express')();
+const path = require('path');
 //const uuid = require('uuid')();
 // Cors is for limiting the access of unrecognized ip addressess and users.
 const cors = require('cors');
@@ -39,6 +40,13 @@ db.sync(remotedb, {
 //const remotedb = new pouchdb("http:/admin:pass@178.128.122.138:5984/library_db");
 //console.log(remotedb.info())
 */
+
+//Display my app
+app.get('/', (req, res) => {
+  res.header("Content-Type", 'application/json')
+  res.send(JSON.stringify({status:'what are you looking for?'}))
+})
+
 
 
 app.set('trust proxy', true)
@@ -267,6 +275,7 @@ app.post('/updateBook'), (req, res) => {
     res.send(JSON.stringify({status:'Updated ' + req.body.bookTitle + ' by ' + req.body.bookAuthor}))
   })
 }
+
 
 
 //Global testing
