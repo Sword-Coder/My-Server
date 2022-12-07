@@ -174,10 +174,24 @@ app.get('/getNames', (req, res) =>{
   })  
 })
 
+//This is will be the package needed for uploading an image. I will be using the images for the display of top rated books.
+const multer = require('multer');
+const { dirname } = require('path');
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, '/root/Images')
+  },
+  filename: (req, file, cb) => {
+    console.log(file)
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, file.fieldname + '-' + uniqueSuffix)
+  }
+})
 
+const upload = multer({storage: storage});
 
 // This is where I get save my book entry.
-app.post('/saveBook', (req, res)=>{
+app.post('/saveBook', upload.single('image'),(req, res)=>{
   /*remotedb.uuid().then((ids) => {
     const id = ids[0]
     couch.insert('names', {
@@ -195,6 +209,7 @@ app.post('/saveBook', (req, res)=>{
       res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
     })
   })*/
+
   remotedb.upsert(req.body.bookid, (doc)=>{
     /*if(!doc.hasOwnProperty('names')){
       doc.names = []
@@ -219,9 +234,9 @@ app.post('/saveBook', (req, res)=>{
     doc.referenceNumber = req.body.referenceNumber
     return doc
   }).then((result)=>{
-    console.log(result)
+    //console.log(result)
     res.header("Content-Type", 'application/json')
-    res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
+    res.send(JSON.stringify({status:'Saved ' + req.body.bookTitle+ ' by ' + req.body.bookAuthor + "! Also Saved the Image."}))
   })
 })
 
@@ -278,11 +293,15 @@ app.post('/updateBook'), (req, res) => {
 
 
 
-//Global testing
+//Global response
+//app.use(app.static((path.join(__dirname, 'public'))))
+//app.set('views', path.join(__dirname, 'views'))
+//app.set('viewengine', 'ejs')
+
 app.get('*', (req, res)=>{
   console.log(req.url)
-  if(req.url.startsWith('/saveName')){
-
+  if(req.url.startsWith('/upload')){
+    res.send("Image Uploaded")
   }else if(req.url.startsWith('/list')){
     localDB.get('names').then((names)=>{
       res.header("Content-Type", 'application/json')
@@ -294,15 +313,13 @@ app.get('*', (req, res)=>{
     })
 
   }else if(req.url.startsWith('/see')){
-    localDB.info().then(function (info) {
+    remotedb.info().then(function (info) {
       console.log(info);
     })
   }else{
 
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'what are you looking for?'}))
+    //res.render('pages/upload')
   }
-
-  
-
 })
