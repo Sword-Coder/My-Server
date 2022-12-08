@@ -175,11 +175,12 @@ app.get('/getNames', (req, res) =>{
 })
 
 //This is will be the package needed for uploading an image. I will be using the images for the display of top rated books.
-const multer = require('multer');
 const { dirname } = require('path');
+
+const multer = require('multer');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, '/root/Images')
+    cb(null, 'Images')
   },
   filename: (req, file, cb) => {
     console.log(file)
@@ -192,6 +193,7 @@ const upload = multer({storage: storage});
 
 // This is where I get save my book entry.
 app.post('/saveBook', upload.single('image'),(req, res)=>{
+  console.log(req)
   /*remotedb.uuid().then((ids) => {
     const id = ids[0]
     couch.insert('names', {
