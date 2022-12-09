@@ -183,17 +183,20 @@ const storage = multer.diskStorage({
     cb(null, 'Images')
   },
   filename: (req, file, cb) => {
-    console.log(file)
+    console.log("This is the file information in multer" + file)
+    console.log("This is the request in Multer." + req)
+
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, file.fieldname + '-' + uniqueSuffix)
+    cb(null, file.originalname + '-' + uniqueSuffix + '.png')
+    //cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
   }
 })
-
+const maxSize = 20 * 1024 * 1024
 const upload = multer({storage: storage});
 
 // This is where I get save my book entry.
-app.post('/saveBook', upload.single('image'),(req, res)=>{
-  console.log(req)
+app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
+  console.log(req.body)
   /*remotedb.uuid().then((ids) => {
     const id = ids[0]
     couch.insert('names', {
