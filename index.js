@@ -184,8 +184,9 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, file.originalname + '-' + uniqueSuffix + '.png')
-    cb(null, file.fieldname + '-' + path.extname(file.originalname))
+    //cb(null, file.originalname + '-' + uniqueSuffix + '.png')
+    //cb(null, file.fieldname + '-' + path.extname(file.originalname))
+    cb(null, file.originalname)
   }
 })
 const maxSize = 20 * 1024 * 1024
@@ -211,7 +212,7 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
     })
   })*/
     
-  //console.log(req.file.path)
+  //console.log(req.file)
   //console.log(req.body.bookid)
     
   remotedb.upsert(req.body.bookid, (doc)=>{
