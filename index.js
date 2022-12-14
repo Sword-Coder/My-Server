@@ -183,12 +183,9 @@ const storage = multer.diskStorage({
     cb(null, 'Images')
   },
   filename: (req, file, cb) => {
-    console.log("This is the file information in multer" + file)
-    console.log("This is the request in Multer." + req)
-
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
     cb(null, file.originalname + '-' + uniqueSuffix + '.png')
-    //cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
+    cb(null, file.fieldname + '-' + path.extname(file.originalname))
   }
 })
 const maxSize = 20 * 1024 * 1024
@@ -196,7 +193,6 @@ const upload = multer({storage: storage});
 
 // This is where I get save my book entry.
 app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
-  console.log(req.body)
   /*remotedb.uuid().then((ids) => {
     const id = ids[0]
     couch.insert('names', {
@@ -214,32 +210,23 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
       res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
     })
   })*/
-
+    
+  //console.log(req.file.path)
+  //console.log(req.body.bookid)
+    
   remotedb.upsert(req.body.bookid, (doc)=>{
-    /*if(!doc.hasOwnProperty('names')){
-      doc.names = []
-    }
-    doc.names.push({ 
-    "uid": req.body.borrowerid,
-    "type": req.body.type,
-    "firstName": req.body.firstName,
-    "lastName": req.body.lastName,
-    "phoneNumber": req.body.phoneNumber,
-    "email": req.body.email,
-    "birthdate": req.body.birthdate,
-    "status": req.body.status})
-    return doc;*/
     doc.bookid = req.body.bookid,
     doc.type = req.body.type,
     doc.bookTitle = req.body.bookTitle,
     doc.bookAuthor = req.body.bookAuthor,
     doc.bookCategories = req.body.bookCategories,
     doc.bookSubCategories = req.body.bookSubCategories,
-    doc.bookCover = req.body.bookCover,
+    doc.bookCover = req.file.path,
     doc.referenceNumber = req.body.referenceNumber
+
     return doc
   }).then((result)=>{
-    //console.log(result)
+    console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Saved ' + req.body.bookTitle+ ' by ' + req.body.bookAuthor + "! Also Saved the Image."}))
   })
@@ -257,6 +244,9 @@ app.get('/getBooks',(req, res) =>{
     res.header("Content-Type", "application/json")
     res.send(books)
   })
+
+  // Work an api that sends a photo.
+
 })
 
 //Need to make an api that removes or deletes a book in the database and respond back with a new array list of users.
