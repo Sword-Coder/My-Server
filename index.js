@@ -5,7 +5,7 @@ const path = require('path');
 const cors = require('cors');
 
 app.use(cors({
-    origin: ['http://localhost:8080']
+    origin: ['http://localhost:8080','http://localhost:8081']
 }));
 //'http://localhost:8080 or 8082 for my home'
 //This is my express. My Handler
@@ -23,7 +23,7 @@ PouchDB.plugin(require('pouchdb-find'))
 // This is my database
 //const localDB = new PouchDB('localDB',)
 const remotedb = new PouchDB("http://admin:Sword-9-Code@178.128.122.138:5984/library_db")
-
+const paboothdb = new PouchDB("http://admin:Sword-9-Code@178.128.122.138:5984/pa")
 /* 
 // This will only by used if you are trying to sync the local and the remotedb together. 
 const remotedb = new PouchDB('https://admin:pass@ip:5984/databasename', )
@@ -201,7 +201,7 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
     "type": req.body.type,
     "firstName": req.body.firstName,
     "lastName": req.body.lastName,
-    "phoneNumber": req.body.phoneNumber,
+    "phoneNumber": req.body.phoneNumber,  
     "email": req.body.email,
     "birthdate": req.body.birthdate,
     "status": req.body.status
@@ -213,7 +213,7 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
   })*/
     
   //console.log(req.file)
-  //console.log(req.body.bookid)
+  console.log(req.body)
     
   remotedb.upsert(req.body.bookid, (doc)=>{
     doc.bookid = req.body.bookid,
@@ -222,6 +222,7 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
     doc.bookAuthor = req.body.bookAuthor,
     doc.bookCategories = req.body.bookCategories,
     doc.bookSubCategories = req.body.bookSubCategories,
+    doc.bookDescription = req.body.bookDescription,
     doc.bookCover = req.file.path,
     doc.referenceNumber = req.body.referenceNumber
 
@@ -231,11 +232,9 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Saved ' + req.body.bookTitle+ ' by ' + req.body.bookAuthor + "! Also Saved the Image."}))
   })
+  
 })
-
-
-//This is my api for getting the data for my books
-const viewUrl2 = "_utils/#database/library_db/books/all?limit=20&reduce=false"
+//const viewUrl2 = "_utils/#database/pa/books/all?limit=20&reduce=false"
 app.get('/getBooks',(req, res) =>{
   remotedb.query('temp/booksByTitle', {include_docs: true}).then((result) => {
     books = []
@@ -250,9 +249,11 @@ app.get('/getBooks',(req, res) =>{
 
 })
 
+
 //Need to make an api that removes or deletes a book in the database and respond back with a new array list of users.
 app.post('/removeBook', (req, res) => {
-  console.log(req)
+  console.log(req) 
+
   remotedb.get(req.body.bookid, function(err, doc) {
     if (err) { return console.log(err); }
     remotedb.remove(doc, function(err, response) {
@@ -263,8 +264,11 @@ app.post('/removeBook', (req, res) => {
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Successfully Removed Book: ' + req.body.id}))
   });
+
+  //fs.unlink("")
 })
 
+const viewUrl2 = "_utils/#database/library_db/books/all?limit=20&reduce=false"
 app.post('/updateBook'), (req, res) => {
   remotedb.get(req.body.bookid, (err, doc)=>{
     if (err) {return console.log(err);}
@@ -276,6 +280,7 @@ app.post('/updateBook'), (req, res) => {
       bookAuthor: req.body.bookAuthor,
       bookCategories: req.body.bookCategories,
       bookSubCategories: req.body.bookSubCategories,
+      bookDescription: req.body.bookDescription,
       bookCover: req.body.bookCoverFile,
       referenceNumber: req.body.referenceNumber,
       })
@@ -286,6 +291,95 @@ app.post('/updateBook'), (req, res) => {
     res.send(JSON.stringify({status:'Updated ' + req.body.bookTitle + ' by ' + req.body.bookAuthor}))
   })
 }
+
+
+//PA API >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+app.post('/saveSettings', (req, res)=>{
+  console.log(req.body)
+    
+  paboothdb.upsert(req.body.settingId, (doc)=>{
+    doc.settingId = req.body.settingId,
+    doc.type = "group",
+    doc.groupName = req.body.groupName,
+    doc.songTitle = req.body.songTitle,
+    doc.event = req.body.event,
+    doc.mic1 = req.body.mic1
+    doc.mic2 = req.body.mic2
+    doc.mic3 = req.body.mic3
+    doc.mic4 = req.body.mic4
+    doc.mic5 = req.body.mic5
+    doc.mic6 = req.body.mic6
+    doc.mic7 = req.body.mic7
+    doc.mic8 = req.body.mic8
+    doc.mic9 = req.body.mic9
+    doc.mic10 = req.body.mic10
+    return doc
+  }).then((result)=>{
+    console.log(result)
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Saved ' + req.body.songTitle+ ' sung by ' + req.body.groupName }))
+  })
+  
+})
+
+app.get('/getSettings', (req, res) =>{
+  console.log(req)
+  paboothdb.query('temp/group', {include_docs: true}).then((result) => {
+    console.log(result)
+    const groups = []
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((group) => {
+    groups.push(group.doc)
+    })
+    res.header("Content-Type", "application/json")
+    res.send(groups)
+  })
+})
+
+app.post('/updateSettings'), (req, res) => {
+
+  paboothdb.get(req.body.settingId, (err, doc)=>{
+    if (err) {return console.log(err);}
+    paboothdb.put({
+      _id: req.body.settingId,
+      _rev: doc._rev,
+      type: "group",
+      groupName: req.body.groupName,
+      songTitle: req.body.songTitle,
+      event: req.body.event,
+      mic1: req.body.mic1,
+      mic2: req.body.mic2,
+      mic3: req.body.mic3,
+      mic4: req.body.mic4,
+      mic5: req.body.mic5,
+      mic6: req.body.mic6,
+      mic7: req.body.mic7,
+      mic8: req.body.mic8,
+      mic9: req.body.mic9,
+      mic10: req.body.mic10
+      })
+    return doc;
+  }).then((result)=>{
+    console.log(result)
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Updated ' + req.body.songTitle + ' a song sung by ' + req.body.groupName}))
+  })
+}
+
+app.post('/removeSetting', (req, res) => {
+  console.log(req.body) 
+
+  paboothdb.get(req.body.settingId, function(err, doc) {
+    if (err) { return console.log(err); }
+    paboothdb.remove(doc, function(err, response) {
+      if (err) { return console.log(err); }
+      // handle response
+    });
+  }).then((result)=>{
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Successfully Removed Book: ' + req.body.id}))
+  });
+
+})
 
 
 
@@ -319,3 +413,4 @@ app.get('*', (req, res)=>{
     //res.render('pages/upload')
   }
 })
+
