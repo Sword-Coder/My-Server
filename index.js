@@ -1,4 +1,5 @@
 const app = require('express')();
+const express = require('express')
 const path = require('path');
 //const uuid = require('uuid')();
 // Cors is for limiting the access of unrecognized ip addressess and users.
@@ -8,7 +9,7 @@ app.use(cors({
     origin: ['http://localhost:8080','http://localhost:8081']
 }));
 //'http://localhost:8080 or 8082 for my home'
-//This is my express. My Handler
+
 const PORT = process.env.PORT || 5000;
 
 const bodyParser = require('body-parser')
@@ -41,28 +42,34 @@ db.sync(remotedb, {
 //console.log(remotedb.info())
 */
 
-//Display my app
-app.get('/', (req, res) => {
-  res.header("Content-Type", 'application/json')
-  res.send(JSON.stringify({status:'what are you looking for?'}))
-})
-
-
-
 app.set('trust proxy', true)
+app.use('/images', express.static('./Images')) //Making the images public so that it's accessible. // Work an api that sends a photo.
 app.use(bodyParser.json({verify: (req, res, buf)=>{req.rawBody = buf}}))
 app.use(bodyParser.urlencoded({extended:false}))
 
 app.listen(PORT)
 
+/*app.get('/', (req, res) => {
+  res.render('Images')
+})
+*/
+
+// Sign up
+app.post('login', (req,res) => {
+  console.log(req.body)
+})
+
 //Confirmation for login
-app.post('/login', (req, res)=>{
+app.get('/login', (req, res)=>{
   console.log(req.body)
   //console.log(localDB)
   res.header("Content-Type", 'application/json')
   res.send(JSON.stringify({status:'ok'}))
 }) 
 
+
+
+// Add Borrowers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 // This is for adding borrowers and users to the database.
 app.post('/saveName', (req, res)=>{
   /*remotedb.uuid().then((ids) => {
@@ -174,6 +181,7 @@ app.get('/getNames', (req, res) =>{
   })  
 })
 
+//Multer >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //This is will be the package needed for uploading an image. I will be using the images for the display of top rated books.
 const { dirname } = require('path');
 
@@ -192,27 +200,9 @@ const storage = multer.diskStorage({
 const maxSize = 20 * 1024 * 1024
 const upload = multer({storage: storage});
 
-// This is where I get save my book entry.
+// This is where I get save my book entry. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
-  /*remotedb.uuid().then((ids) => {
-    const id = ids[0]
-    couch.insert('names', {
-    "_uid": req.body.borrowerid,
-    "type": req.body.type,
-    "firstName": req.body.firstName,
-    "lastName": req.body.lastName,
-    "phoneNumber": req.body.phoneNumber,  
-    "email": req.body.email,
-    "birthdate": req.body.birthdate,
-    "status": req.body.status
-    }).then((result)=>{
-      console.log(result)
-      res.header("Content-Type", 'application/json')
-      res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
-    })
-  })*/
-    
-  //console.log(req.file)
+  console.log(req)
   console.log(req.body)
     
   remotedb.upsert(req.body.bookid, (doc)=>{
@@ -223,7 +213,7 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
     doc.bookCategories = req.body.bookCategories,
     doc.bookSubCategories = req.body.bookSubCategories,
     doc.bookDescription = req.body.bookDescription,
-    doc.bookCover = req.file.path,
+    doc.bookCover = req.file.originalname,
     doc.referenceNumber = req.body.referenceNumber
 
     return doc
@@ -245,10 +235,7 @@ app.get('/getBooks',(req, res) =>{
     res.send(books)
   })
 
-  // Work an api that sends a photo.
-
 })
-
 
 //Need to make an api that removes or deletes a book in the database and respond back with a new array list of users.
 app.post('/removeBook', (req, res) => {
@@ -413,4 +400,3 @@ app.get('*', (req, res)=>{
     //res.render('pages/upload')
   }
 })
-
