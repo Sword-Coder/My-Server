@@ -42,6 +42,9 @@ db.sync(remotedb, {
 //console.log(remotedb.info())
 */
 
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
 app.set('trust proxy', true)
 app.use('/images', express.static('./Images')) //Making the images public so that it's accessible. // Work an api that sends a photo.
 app.use(bodyParser.json({verify: (req, res, buf)=>{req.rawBody = buf}}))
@@ -49,10 +52,12 @@ app.use(bodyParser.urlencoded({extended:false}))
 
 app.listen(PORT)
 
-/*app.get('/', (req, res) => {
-  res.render('Images')
+
+//Someday this is where I will put my function to display my app, electron, pwa, so on.
+app.get('/', (req, res) => {
+  res.render('upload.ejs')
 })
-*/
+
 
 // Sign up
 app.post('login', (req,res) => {
@@ -202,8 +207,8 @@ const upload = multer({storage: storage});
 
 // This is where I get save my book entry. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
-  console.log(req)
-  console.log(req.body)
+  //console.log(req)
+  //console.log(req.body)
     
   remotedb.upsert(req.body.bookid, (doc)=>{
     doc.bookid = req.body.bookid,
