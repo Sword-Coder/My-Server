@@ -6,7 +6,7 @@ const path = require('path');
 const cors = require('cors');
 
 app.use(cors({
-    origin: ['http://localhost:8080','http://localhost:8081']
+    origin: ['http://localhost:8080','http://localhost:8081', '*']
 }));
 //'http://localhost:8080 or 8082 for my home'
 
@@ -248,16 +248,16 @@ app.post('/removeBook', (req, res) => {
 
   remotedb.get(req.body.bookid, function(err, doc) {
     if (err) { return console.log(err); }
+    console.log(doc)
+    
     remotedb.remove(doc, function(err, response) {
       if (err) { return console.log(err); }
       // handle response
     });
   }).then((result)=>{
     res.header("Content-Type", 'application/json')
-    res.send(JSON.stringify({status:'Successfully Removed Book: ' + req.body.id}))
+    res.send(JSON.stringify({status:'Successfully Removed Book: ' + req.body.bookid}))
   });
-
-  //fs.unlink("")
 })
 
 const viewUrl2 = "_utils/#database/library_db/books/all?limit=20&reduce=false"
