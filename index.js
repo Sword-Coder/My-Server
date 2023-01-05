@@ -284,6 +284,37 @@ app.post('/updateBook'), (req, res) => {
   })
 }
 
+//Book Requests >>>>>>>>>>>>>>>>>>>>>>>>>
+app.post('/bookrequest', (req, res) => {
+  console.log(req.body)
+  /*reqId: uid(),
+            user: this.firstName + " " + this.lastName,
+            requestedBook: this.checkoutDetails,*/
+  remotedb.upsert(req.body.reqId, (doc)=>{
+    doc.type = req.body.type
+    doc.user = req.body.user
+    doc.requestedBook = req.body.requestedBook
+    return doc
+  }).then((result)=>{
+    console.log(result)
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Registered the request ' + req.body.reqId}))
+  })
+})
+
+app.get('/bookrequestlist', (req, res) => {
+  console.log()
+  remotedb.query('temp/reqbook', {include_docs: true}).then((result) => {
+    books = []
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((book) => {
+    books.push(book.doc)
+    })
+    res.header("Content-Type", "application/json")
+    res.send(books)
+  })
+
+})
+
 
 //PA API >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/saveSettings', (req, res)=>{
