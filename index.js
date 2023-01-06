@@ -6,7 +6,7 @@ const path = require('path');
 const cors = require('cors');
 
 app.use(cors({
-    origin: ['http://localhost:8080','http://localhost:8081', '*']
+    origin: ['http://localhost:8080','http://localhost:8081',]
 }));
 //'http://localhost:8080 or 8082 for my home'
 
