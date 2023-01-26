@@ -315,6 +315,93 @@ app.get('/bookrequestlist', (req, res) => {
 
 })
 
+app.post('/disapprove', (req, res) => {
+  console.log(req.body)
+  console.log(req.body.disapprovedbook._id) 
+  remotedb.get(req.body.disapprovedbook._id, function(err, doc) {
+    if (err) { return console.log(err); }
+    console.log(doc)
+    
+    remotedb.remove(doc, function(err, response) {
+      if (err) { return console.log(err); }
+      // handle response
+    });
+  }).then((result)=>{
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Successfully Removed Book: ' + req.body.disapprovedbook._id}))
+  });
+})
+
+app.post('/approve', (req, res) => {
+  console.log(req.body)
+//remove the data from the pending of book approval.
+  
+  remotedb.get(req.body.approved._id, function(err, doc) {
+    if (err) { return console.log(err); }
+    console.log(doc)
+    
+    remotedb.remove(doc, function(err, response) {
+      if (err) { return console.log(err); }
+      // handle response
+    });
+  }).then((result)=>{
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Successfully Approved Book: ' + req.body.approved._id}))
+  }); 
+
+  // Approve book and update the users borrowed book.
+  
+  remotedb.get(req.body.approved.user, (err, doc)=>{
+    if (err) {return console.log(err);}
+    remotedb.put({
+      _id: doc._id,
+      _rev: doc._rev,
+      uid: doc._id,
+      type: doc.type,
+      firstName: doc.firstName,
+      lastName: doc.lastName,
+      phoneNumber: doc.phoneNumber,
+      email: doc.email,
+      birthdate: doc.birthdate,
+      status: doc.status,
+      borrowed: req.body.approved.requestedBook.title
+      })
+    return doc;
+  }).then((result)=>{
+    console.log(result)
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Updated User ' + req.body.approved.user}))
+  }) 
+
+  //Add the book to the approvedBook database.
+  remotedb.upsert(req.body.reqId, (doc)=>{
+    doc.id = req.body.reqId
+    doc.type = req.body.type
+    doc.bookDetails = req.body.approved
+    return doc
+  }).then((result)=>{
+    console.log(result)
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Approved Book ' + req.body.reqId}))
+  })
+  
+})
+// This api disapproves data.
+
+// Make an api that updates the library users borrowed books and updates the copies registered in the database.
+
+app.get('/approvedbooklist', (req, res) => {
+  console.log()
+  remotedb.query('temp/approvedBook', {include_docs: true}).then((result) => {
+    books = []
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((book) => {
+    books.push(book.doc)
+    })
+    res.header("Content-Type", "application/json")
+    res.send(books)
+  })
+})
+
 
 //PA API >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/saveSettings', (req, res)=>{
