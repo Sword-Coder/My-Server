@@ -333,7 +333,7 @@ app.post('/disapprove', (req, res) => {
 })
 
 app.post('/approve', (req, res) => {
-  console.log(req.body)
+//console.log(req.body)
 //remove the data from the pending of book approval.
   
   remotedb.get(req.body.approved._id, function(err, doc) {
@@ -349,10 +349,10 @@ app.post('/approve', (req, res) => {
     //res.send(JSON.stringify({status:'Successfully Approved Book: ' + req.body.approved._id}))
   }); 
 
+  let updateUBooks;
   // Approve book and update the users borrowed book.
   remotedb.query('temp/borrowers', {include_docs: true}).then((result) => {
     user = []
-    console.log(user)
     /*for (let i = 0; i < this.user.length; i++) {
       //console.log(this.tempborrowerdata[i].firstName);
       if (
@@ -363,13 +363,24 @@ app.post('/approve', (req, res) => {
         console.log("Did not find a match.")
       }
     }*/
-    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((borrower) => {
-    user.push(borrower.doc)
-    console.log(borrower)
+    //result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((borrower) => {
+    //user.push(borrower.doc)
+
+     
+    //})
+    //display array console.log(result)
+    result.rows.sort((a,b) => {return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0}).forEach((borrower) => {
+     user.push(borrower)
     })
-  })
-  
-  /*remotedb.get(req.body.approved.user, (err, doc)=>{
+
+    const matchedUser = user.filter(item => item.value.indexOf(req.body.approved.user) !== -1);
+    //console.log(matchedUser)
+    updateUBooks = matchedUser
+    console.log(updateUBooks[0].doc._id)
+ 
+  //console.log(updateUBooks)
+
+  remotedb.get(updateUBooks[0].doc._id, (err, doc)=>{
     if (err) {return console.log(err);}
     remotedb.put({
       _id: doc._id,
@@ -382,15 +393,15 @@ app.post('/approve', (req, res) => {
       email: doc.email,
       birthdate: doc.birthdate,
       status: doc.status,
-      borrowed: req.body.requestedBook.title
+      borrowed: [...[doc.borrowed] ,req.body.approved.requestedBook.title]
       })
     return doc;
   }).then((result)=>{
     //console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Updated User ' + req.body.approved.user}))
-  }) */
-
+  }) 
+})
   //Add the book to the approvedBook database.
   
   remotedb.upsert(req.body.reqId, (doc)=>{
@@ -400,8 +411,8 @@ app.post('/approve', (req, res) => {
     return doc
   }).then((result)=>{
     console.log(result)
-    res.header("Content-Type", 'application/json')
-    res.send(JSON.stringify({status:'Approved Book ' + req.body.reqId}))
+    //res.header("Content-Type", 'application/json')
+    //res.send(JSON.stringify({status:'Approved Book ' + req.body.reqId}))
   })
   
 })
