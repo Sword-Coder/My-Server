@@ -61,12 +61,12 @@ app.get('/', (req, res) => {
 
 // Sign up
 app.post('login', (req,res) => {
-  console.log(req.body)
+  //console.log(req.body)
 })
 
 //Confirmation for login
 app.get('/login', (req, res)=>{
-  console.log(req.body)
+  //console.log(req.body)
   //console.log(localDB)
   res.header("Content-Type", 'application/json')
   res.send(JSON.stringify({status:'ok'}))
@@ -118,7 +118,7 @@ app.post('/saveName', (req, res)=>{
     doc.status = req.body.status
     return doc
   }).then((result)=>{
-    console.log(result)
+    //console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
   })
@@ -142,7 +142,7 @@ app.post('/updateName', (req, res)=>{
       doc.updates.push({time: new Date().getTime(), updateBy: this.loginid})
     return doc;
   }).then((result)=>{
-    console.log(result)
+    //console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Updated ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
   })
@@ -151,7 +151,7 @@ app.post('/updateName', (req, res)=>{
 
 //Need to make an api that removes or deletes a library user in the database and respond back with a new array list of users.
 app.post('/removeBorrowers', (req, res) => {
-  console.log(req)
+  //console.log(req)
   remotedb.get(req.body.id, function(err, doc) {
     if (err) { return console.log(err); }
     remotedb.remove(doc, (err, response) => {
@@ -159,7 +159,7 @@ app.post('/removeBorrowers', (req, res) => {
       // handle response
     });
   }).then((result)=>{
-    console.log(result)
+    //console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Successfully Removed User: ' + req.body.id}))
   });
@@ -223,7 +223,7 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
 
     return doc
   }).then((result)=>{
-    console.log(result)
+    //console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Saved ' + req.body.bookTitle+ ' by ' + req.body.bookAuthor + "! Also Saved the Image."}))
   })
@@ -244,11 +244,11 @@ app.get('/getBooks',(req, res) =>{
 
 //Need to make an api that removes or deletes a book in the database and respond back with a new array list of users.
 app.post('/removeBook', (req, res) => {
-  console.log(req) 
+  //console.log(req) 
 
   remotedb.get(req.body.bookid, function(err, doc) {
     if (err) { return console.log(err); }
-    console.log(doc)
+    //console.log(doc)
     
     remotedb.remove(doc, function(err, response) {
       if (err) { return console.log(err); }
@@ -278,7 +278,7 @@ app.post('/updateBook'), (req, res) => {
       })
     return doc;
   }).then((result)=>{
-    console.log(result)
+    //console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Updated ' + req.body.bookTitle + ' by ' + req.body.bookAuthor}))
   })
@@ -286,7 +286,7 @@ app.post('/updateBook'), (req, res) => {
 
 //Book Requests >>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/bookrequest', (req, res) => {
-  console.log(req.body)
+  //console.log(req.body)
   /*reqId: uid(),
             user: this.firstName + " " + this.lastName,
             requestedBook: this.checkoutDetails,*/
@@ -296,14 +296,14 @@ app.post('/bookrequest', (req, res) => {
     doc.requestedBook = req.body.requestedBook
     return doc
   }).then((result)=>{
-    console.log(result)
+   // console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Registered the request ' + req.body.reqId}))
   })
 })
 
 app.get('/bookrequestlist', (req, res) => {
-  console.log()
+  //console.log()
   remotedb.query('temp/reqbook', {include_docs: true}).then((result) => {
     books = []
     result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((book) => {
@@ -316,11 +316,11 @@ app.get('/bookrequestlist', (req, res) => {
 })
 
 app.post('/disapprove', (req, res) => {
-  console.log(req.body)
-  console.log(req.body.disapprovedbook._id) 
+  //console.log(req.body)
+  //console.log(req.body.disapprovedbook._id) 
   remotedb.get(req.body.disapprovedbook._id, function(err, doc) {
     if (err) { return console.log(err); }
-    console.log(doc)
+    //console.log(doc)
     
     remotedb.remove(doc, function(err, response) {
       if (err) { return console.log(err); }
@@ -338,20 +338,38 @@ app.post('/approve', (req, res) => {
   
   remotedb.get(req.body.approved._id, function(err, doc) {
     if (err) { return console.log(err); }
-    console.log(doc)
+    //console.log(doc)
     
     remotedb.remove(doc, function(err, response) {
       if (err) { return console.log(err); }
       // handle response
     });
   }).then((result)=>{
-    res.header("Content-Type", 'application/json')
-    res.send(JSON.stringify({status:'Successfully Approved Book: ' + req.body.approved._id}))
+    //res.header("Content-Type", 'application/json')
+    //res.send(JSON.stringify({status:'Successfully Approved Book: ' + req.body.approved._id}))
   }); 
 
   // Approve book and update the users borrowed book.
+  remotedb.query('temp/borrowers', {include_docs: true}).then((result) => {
+    user = []
+    console.log(user)
+    /*for (let i = 0; i < this.user.length; i++) {
+      //console.log(this.tempborrowerdata[i].firstName);
+      if (
+        req.body.approve.user === user.value
+      ) {
+        console.log("Found a match.")
+      } else {
+        console.log("Did not find a match.")
+      }
+    }*/
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((borrower) => {
+    user.push(borrower.doc)
+    console.log(borrower)
+    })
+  })
   
-  remotedb.get(req.body.approved.user, (err, doc)=>{
+  /*remotedb.get(req.body.approved.user, (err, doc)=>{
     if (err) {return console.log(err);}
     remotedb.put({
       _id: doc._id,
@@ -364,16 +382,17 @@ app.post('/approve', (req, res) => {
       email: doc.email,
       birthdate: doc.birthdate,
       status: doc.status,
-      borrowed: req.body.approved.requestedBook.title
+      borrowed: req.body.requestedBook.title
       })
     return doc;
   }).then((result)=>{
-    console.log(result)
+    //console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Updated User ' + req.body.approved.user}))
-  }) 
+  }) */
 
   //Add the book to the approvedBook database.
+  
   remotedb.upsert(req.body.reqId, (doc)=>{
     doc.id = req.body.reqId
     doc.type = req.body.type
@@ -391,7 +410,7 @@ app.post('/approve', (req, res) => {
 // Make an api that updates the library users borrowed books and updates the copies registered in the database.
 
 app.get('/approvedbooklist', (req, res) => {
-  console.log()
+  //console.log()
   remotedb.query('temp/approvedBook', {include_docs: true}).then((result) => {
     books = []
     result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((book) => {
@@ -433,7 +452,7 @@ app.post('/saveSettings', (req, res)=>{
 })
 
 app.get('/getSettings', (req, res) =>{
-  console.log(req)
+  //console.log(req)
   paboothdb.query('temp/group', {include_docs: true}).then((result) => {
     console.log(result)
     const groups = []
@@ -476,7 +495,7 @@ app.post('/updateSettings'), (req, res) => {
 }
 
 app.post('/removeSetting', (req, res) => {
-  console.log(req.body) 
+  //console.log(req.body) 
 
   paboothdb.get(req.body.settingId, function(err, doc) {
     if (err) { return console.log(err); }
