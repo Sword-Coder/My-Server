@@ -176,7 +176,7 @@ app.get('/getNames', (req, res) =>{
     res.send(JSON.stringify(result))
   })*/
   remotedb.query('temp/borrowers', {key:'borrower', include_docs: true}).then((result) => {
-    console.log(result)
+    //console.log(result)
     const borrowers = []
     result.rows.sort((a, b)=> {return a.value.toLowerCase() < b.value.toLowerCase() ? -1 : 0}).forEach((borrower) => {
     borrowers.push(borrower.doc)
@@ -335,7 +335,7 @@ app.post('/disapprove', (req, res) => {
 app.post('/approve', (req, res) => {
 //console.log(req.body)
 //remove the data from the pending of book approval.
-  
+  /*
   remotedb.get(req.body.approved._id, function(err, doc) {
     if (err) { return console.log(err); }
     //console.log(doc)
@@ -348,12 +348,12 @@ app.post('/approve', (req, res) => {
     //res.header("Content-Type", 'application/json')
     //res.send(JSON.stringify({status:'Successfully Approved Book: ' + req.body.approved._id}))
   }); 
-
+  */
   let updateUBooks;
-  // Approve book and update the users borrowed book.
-  remotedb.query('temp/borrowers', {include_docs: true}).then((result) => {
+// Approve book and update the users borrowed book.
+  /*remotedb.query('temp/borrowers', {include_docs: true}).then((result) => {
     user = []
-    /*for (let i = 0; i < this.user.length; i++) {
+    for (let i = 0; i < this.user.length; i++) {
       //console.log(this.tempborrowerdata[i].firstName);
       if (
         req.body.approve.user === user.value
@@ -362,7 +362,7 @@ app.post('/approve', (req, res) => {
       } else {
         console.log("Did not find a match.")
       }
-    }*/
+    }
     //result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((borrower) => {
     //user.push(borrower.doc)
 
@@ -378,9 +378,9 @@ app.post('/approve', (req, res) => {
     updateUBooks = matchedUser
     console.log(updateUBooks[0].doc._id)
  
-  //console.log(updateUBooks)
+    //console.log(updateUBooks)
 
-  remotedb.get(updateUBooks[0].doc._id, (err, doc)=>{
+    remotedb.get(updateUBooks[0].doc._id, (err, doc)=>{
     if (err) {return console.log(err);}
     remotedb.put({
       _id: doc._id,
@@ -401,10 +401,12 @@ app.post('/approve', (req, res) => {
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Updated User ' + req.body.approved.user}))
   }) 
-})
-  //Add the book to the approvedBook database.
+  })
+  */
   
-  remotedb.upsert(req.body.reqId, (doc)=>{
+//Add the book to the approvedBook database.
+  
+  /*remotedb.upsert(req.body.reqId, (doc)=>{
     doc.id = req.body.reqId
     doc.type = req.body.type
     doc.bookDetails = req.body.approved
@@ -413,8 +415,42 @@ app.post('/approve', (req, res) => {
     console.log(result)
     //res.header("Content-Type", 'application/json')
     //res.send(JSON.stringify({status:'Approved Book ' + req.body.reqId}))
-  })
+  })*/
+  var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+  var days = ["Sunday", "Monday", "Tuesday", "Wenesday", "Thursday", "Friday", "Saturday"]
+
   
+  //Expiry date
+  let currentDate = new Date();
+  var month = currentDate.getMonth() + 1;
+  var year = currentDate.getFullYear();
+  var date = currentDate.getDate();
+  var day = currentDate.getDay();
+  var hour = currentDate.getHours();
+  var mins = currentDate.getMinutes();
+  var secs = currentDate.getSeconds();
+  var mils = currentDate.getMilliseconds();
+  var getTime = currentDate.getTime();
+
+  let format1 = month + "/" + day + "/" + year;
+
+  var setexpiry = currentDate.setDate(currentDate.getDate() + 30)
+  //res.send(JSON.stringify({status:"Please Return on " + currentDate.setDate(currentDate.getDate() + 30)}))
+  res.send(JSON.stringify({status:"Please Return on " + setexpiry}))
+  console.log(currentDate.getFullYear())
+
+  
+/* 
+getFullYear()	Get year as a four digit number (yyyy)
+getMonth()	Get month as a number (0-11)
+getDate()	Get day as a number (1-31)
+getDay()	Get weekday as a number (0-6)
+getHours()	Get hour (0-23)
+getMinutes()	Get minute (0-59)
+getSeconds()	Get second (0-59)
+getMilliseconds()	Get millisecond (0-999)
+getTime()	Get time (milliseconds since January 1, 1970)
+*/
 })
 // This api disapproves data.
 
