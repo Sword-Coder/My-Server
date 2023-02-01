@@ -107,7 +107,7 @@ app.post('/saveName', (req, res)=>{
     "email": req.body.email,
     "birthdate": req.body.birthdate,
     "status": req.body.status})
-    return doc;*/
+    return doc;*/ //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> The outcome of this code can be seen in the database called "names."
     doc.uid = req.body.borrowerid,
     doc.type = req.body.type,
     doc.firstName = req.body.firstName,
