@@ -359,7 +359,7 @@ var months = ["January", "February", "March", "April", "May", "June", "July", "A
    }
   var newDate = currentDate.toLocaleString("en-US", newDateOptions );
   //res.send(JSON.stringify({status:"Please Return on " + currentDate.setDate(currentDate.getDate() + 30)}))
-  console.log(newDate)
+  //console.log(newDate)
 
   
   /* 
@@ -474,6 +474,63 @@ app.get('/approvedbooklist', (req, res) => {
     })
     res.header("Content-Type", "application/json")
     res.send(books)
+  })
+})
+
+//This api approves that the book has been returned.
+app.post('/returnbook', (req, res) => {
+  console.log(req.body)
+
+  remotedb.get(req.body.bookborrowed._id, function(err, doc) {
+    if (err) { return console.log(err); }
+    //console.log(doc)
+    
+    remotedb.remove(doc, function(err, response) {
+      if (err) { return console.log(err); }
+      // handle response
+    });
+  }).then((result)=>{
+    //res.header("Content-Type", 'application/json')
+    //res.send(JSON.stringify({status:'Successfully Approved Book: ' + req.body.approved._id}))
+  });
+  let updateBBooks;
+
+// Return book and update the users borrowed book.
+  remotedb.query('temp/borrowers', {include_docs: true}).then((result) => {
+    user = []
+    result.rows.sort((a,b) => {return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0}).forEach((borrower) => {
+     user.push(borrower)
+    })
+
+    const matchedUser = user.filter(item => item.value.indexOf(req.body.bookborrowed.bookDetails.user) !== -1);
+    //console.log(matchedUser)
+    updateBBooks = matchedUser
+    console.log(updateBBooks[0].doc._id)
+ 
+    //console.log(updateUBooks)
+
+    
+  remotedb.get(updateBBooks[0].doc._id, (err, doc)=>{
+    if (err) {return console.log(err);}
+    remotedb.put({
+      _id: doc._id,
+      _rev: doc._rev,
+      uid: doc._id,
+      type: doc.type,
+      firstName: doc.firstName,
+      lastName: doc.lastName,
+      phoneNumber: doc.phoneNumber,
+      email: doc.email,
+      birthdate: doc.birthdate,
+      status: doc.status,
+      borrowed: []
+      })
+    return doc;
+  }).then((result)=>{
+    //console.log(result)
+    res.header("Content-Type", 'application/json')
+    res.send(JSON.stringify({status:'Updated User ' + req.body.bookborrowed.bookDetails.user}))
+  }) 
   })
 })
 
