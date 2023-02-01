@@ -376,7 +376,6 @@ var months = ["January", "February", "March", "April", "May", "June", "July", "A
 app.post('/approve', (req, res) => {
 //console.log(req.body)
 //remove the data from the pending of book approval.
-  
   remotedb.get(req.body.approved._id, function(err, doc) {
     if (err) { return console.log(err); }
     //console.log(doc)
@@ -418,13 +417,37 @@ app.post('/approve', (req, res) => {
     const matchedUser = user.filter(item => item.value.indexOf(req.body.approved.user) !== -1);
     //console.log(matchedUser)
     updateUBooks = matchedUser
-    console.log(updateUBooks[0].doc._id)
+    //console.log(updateUBooks[0].doc._id)
  
     //console.log(updateUBooks)
 
     
   remotedb.get(updateUBooks[0].doc._id, (err, doc)=>{
+    //console.log(doc)
     if (err) {return console.log(err);}
+
+    var updateuserBorrowedBooks = req.body.approved.requestedBook.title
+    var docupdate = doc.borrowed
+    console.log(docupdate)
+    var constBorrowed = []
+    if (!doc.borrowed || doc.borrowed === null) {
+      remotedb.put({
+        _id: doc._id,
+        _rev: doc._rev,
+        uid: doc._id,
+        type: doc.type,
+        firstName: doc.firstName,
+        lastName: doc.lastName,
+        phoneNumber: doc.phoneNumber,
+        email: doc.email,
+        birthdate: doc.birthdate,
+        status: doc.status,
+        borrowed: req.body.approved.requestedBook.title
+        })
+    }else if(Array.isArray(docupdate)){
+      var updateuserBorrowedBooks = [req.body.approved.requestedBook.title]
+      var docupdate = doc.borrowed
+      constBorrowed = docupdate.concat(updateuserBorrowedBooks)
     remotedb.put({
       _id: doc._id,
       _rev: doc._rev,
@@ -436,8 +459,25 @@ app.post('/approve', (req, res) => {
       email: doc.email,
       birthdate: doc.birthdate,
       status: doc.status,
-      borrowed: [...[doc.borrowed] ,req.body.approved.requestedBook.title]
+      borrowed: constBorrowed
       })
+    }else{
+      constBorrowed.push(updateuserBorrowedBooks)
+      constBorrowed.push(docupdate)
+      remotedb.put({
+        _id: doc._id,
+        _rev: doc._rev,
+        uid: doc._id,
+        type: doc.type,
+        firstName: doc.firstName,
+        lastName: doc.lastName,
+        phoneNumber: doc.phoneNumber,
+        email: doc.email,
+        birthdate: doc.birthdate,
+        status: doc.status,
+        borrowed: constBorrowed
+        })
+    }
     return doc;
   }).then((result)=>{
     //console.log(result)
@@ -455,11 +495,11 @@ app.post('/approve', (req, res) => {
     doc.bookDetails = req.body.approved
     return doc
   }).then((result)=>{
-    console.log(result)
+    //console.log(result)
     //res.header("Content-Type", 'application/json')
     //res.send(JSON.stringify({status:'Approved Book ' + req.body.reqId}))
   })
- 
+  
 })
 // This api disapproves data.
 
@@ -479,7 +519,7 @@ app.get('/approvedbooklist', (req, res) => {
 
 //This api approves that the book has been returned.
 app.post('/returnbook', (req, res) => {
-  console.log(req.body)
+  ///console.log(req.body)
 
   remotedb.get(req.body.bookborrowed._id, function(err, doc) {
     if (err) { return console.log(err); }
@@ -505,7 +545,7 @@ app.post('/returnbook', (req, res) => {
     const matchedUser = user.filter(item => item.value.indexOf(req.body.bookborrowed.bookDetails.user) !== -1);
     //console.log(matchedUser)
     updateBBooks = matchedUser
-    console.log(updateBBooks[0].doc._id)
+    //console.log(updateBBooks[0].doc._id)
  
     //console.log(updateUBooks)
 
@@ -523,7 +563,7 @@ app.post('/returnbook', (req, res) => {
       email: doc.email,
       birthdate: doc.birthdate,
       status: doc.status,
-      borrowed: []
+      borrowed: null
       })
     return doc;
   }).then((result)=>{
