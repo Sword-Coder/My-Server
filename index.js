@@ -333,7 +333,7 @@ app.post('/disapprove', (req, res) => {
 })
 
 var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    var days = ["Sunday", "Monday", "Tuesday", "Wenesday", "Thursday", "Friday", "Saturday"]
+var days = ["Sunday", "Monday", "Tuesday", "Wenesday", "Thursday", "Friday", "Saturday"]
 
   
   //Expiry date
@@ -519,7 +519,7 @@ app.get('/approvedbooklist', (req, res) => {
 
 //This api approves that the book has been returned.
 app.post('/returnbook', (req, res) => {
-  ///console.log(req.body)
+  //console.log(req.body)
 
   remotedb.get(req.body.bookborrowed._id, function(err, doc) {
     if (err) { return console.log(err); }
@@ -533,6 +533,7 @@ app.post('/returnbook', (req, res) => {
     //res.header("Content-Type", 'application/json')
     //res.send(JSON.stringify({status:'Successfully Approved Book: ' + req.body.approved._id}))
   });
+
   let updateBBooks;
 
 // Return book and update the users borrowed book.
@@ -552,6 +553,31 @@ app.post('/returnbook', (req, res) => {
     
   remotedb.get(updateBBooks[0].doc._id, (err, doc)=>{
     if (err) {return console.log(err);}
+    var filtered = doc.borrowed
+    var bookToBeRemoved
+    //console.log(filtered)
+
+    /*for(let i = 0; i < filtered.length; i++){
+      if( req.body.bookborrowed.bookDetails.requestedBook.title === filtered[i]){
+        //console.log(filtered.indexOf(filtered[i]))
+        bookToBeRemoved  = filtered.indexOf(filtered[i])
+        //console.log(booksToBeRemoved)
+        filtered.splice(filtered[i], 1) 
+        //console.log(test)
+        //console.log(filtered)
+      }
+    }*/ // Remove one instance of the same value. E.G. "Pilgrim's Inn; or, The Herb of Grace","All of grace","All of grace"
+
+    var i = 0;
+    while (i < filtered.length) {
+    if (filtered[i] === req.body.bookborrowed.bookDetails.requestedBook.title) {
+      filtered.splice(i, 1);
+    } else {
+      ++i;
+    }
+    } // Remove all instance of the same value. E.G. "Pilgrim's Inn; or, The Herb of Grace","All of grace","All of grace"
+
+    //console.log(filtered)
     remotedb.put({
       _id: doc._id,
       _rev: doc._rev,
@@ -563,7 +589,7 @@ app.post('/returnbook', (req, res) => {
       email: doc.email,
       birthdate: doc.birthdate,
       status: doc.status,
-      borrowed: null
+      borrowed: filtered
       })
     return doc;
   }).then((result)=>{
