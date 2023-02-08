@@ -598,6 +598,8 @@ app.post('/returnbook', (req, res) => {
     res.send(JSON.stringify({status:'Updated User ' + req.body.bookborrowed.bookDetails.user}))
   }) 
   })
+
+  //Make a function that pushes to returned books database.
 })
 
 
