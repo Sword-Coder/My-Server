@@ -128,6 +128,21 @@ app.post('/saveName', (req, res)=>{
 app.post('/updateName', (req, res)=>{
   remotedb.get(req.body.borrowerid, (err, doc)=>{
     if (err) {return consonle.log(err);}
+    if(doc.borrowed){
+      remotedb.put({
+      _id: req.body.borrowerid,
+      _rev: doc._rev,
+      type: req.body.type,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      phoneNumber: req.body.phoneNumber,
+      email: req.body.email,
+      birthdate: req.body.birthdate,
+      status:req.body.status,
+      borrowed: doc.borrowed
+      })
+      //doc.updates.push({time: new Date().getTime(), updateBy: this.loginid})
+    }else{
     remotedb.put({
       _id: req.body.borrowerid,
       _rev: doc._rev,
@@ -139,7 +154,8 @@ app.post('/updateName', (req, res)=>{
       birthdate: req.body.birthdate,
       status:req.body.status
       })
-      doc.updates.push({time: new Date().getTime(), updateBy: this.loginid})
+      //doc.updates.push({time: new Date().getTime(), updateBy: this.loginid})
+    }
     return doc;
   }).then((result)=>{
     //console.log(result)
@@ -264,6 +280,20 @@ const viewUrl2 = "_utils/#database/library_db/books/all?limit=20&reduce=false"
 app.post('/updateBook'), (req, res) => {
   remotedb.get(req.body.bookid, (err, doc)=>{
     if (err) {return console.log(err);}
+    if(!doc.bookCover) {
+      remotedb.put({
+        _id: req.body.bookid,
+        _rev: doc._rev,
+        type: req.body.type,
+        bookTitle: req.body.bookTitle,
+        bookAuthor: req.body.bookAuthor,
+        bookCategories: req.body.bookCategories,
+        bookSubCategories: req.body.bookSubCategories,
+        bookDescription: req.body.bookDescription,
+        bookCover: doc.bookCover,
+        referenceNumber: req.body.referenceNumber,
+        })
+    }else{
     remotedb.put({
       _id: req.body.bookid,
       _rev: doc._rev,
@@ -276,6 +306,7 @@ app.post('/updateBook'), (req, res) => {
       bookCover: req.body.bookCoverFile,
       referenceNumber: req.body.referenceNumber,
       })
+    }
     return doc;
   }).then((result)=>{
     //console.log(result)
