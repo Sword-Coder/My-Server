@@ -60,8 +60,31 @@ app.get('/', (req, res) => {
 
 
 // Sign up
-app.post('login', (req,res) => {
+app.post('/login', (req,res) => {
   //console.log(req.body)
+  remotedb.query('temp/librarians', {include_docs: true}).then((result) => {
+    //console.log(result)
+    var stat
+    librarians = []
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((librarian) => {
+    librarians.push(librarian.doc)
+    })
+    for (let i = 0; i < librarians.length; i++) {
+      //console.log(this.tempborrowerdata[i].firstName);
+      //console.log(librarians[0].firstName)
+      if (
+        req.body.loginid === librarians[i].firstName + " " + librarians[i].lastName && req.body.pass === librarians[i].password
+      ) {
+        // console.log(librarians[i].password)
+        stat = true
+        break
+      } else {
+        stat = false
+      }
+    }
+    res.header("Content-Type", "application/json")
+    res.send(JSON.stringify({status: stat}))
+  })
 })
 
 //Confirmation for login
@@ -317,20 +340,33 @@ app.post('/updateBook'), (req, res) => {
 
 //Book Requests >>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/bookrequest', (req, res) => {
-  //console.log(req.body)
-  /*reqId: uid(),
-            user: this.firstName + " " + this.lastName,
-            requestedBook: this.checkoutDetails,*/
-  remotedb.upsert(req.body.reqId, (doc)=>{
-    doc.type = req.body.type
-    doc.user = req.body.user
-    doc.requestedBook = req.body.requestedBook
-    return doc
-  }).then((result)=>{
-   // console.log(result)
-    res.header("Content-Type", 'application/json')
-    res.send(JSON.stringify({status:'Registered the request ' + req.body.reqId}))
-  })
+  console.log(req.body)
+  if(req.body.requestedBook.bookTitle){
+    remotedb.upsert(req.body.reqId, (doc)=>{
+      doc.type = req.body.type
+      doc.user = req.body.user
+      doc.requestedBook = req.body.requestedBook
+      return doc
+    }).then((result)=>{
+     // console.log(result)
+      res.header("Content-Type", 'application/json')
+      res.send(JSON.stringify({status:'Registered the request ' + req.body.reqId}))
+    })
+  }else{
+    /*reqId: uid(),
+              user: this.firstName + " " + this.lastName,
+              requestedBook: this.checkoutDetails,*/
+    remotedb.upsert(req.body.reqId, (doc)=>{
+      doc.type = req.body.type
+      doc.user = req.body.user
+      doc.requestedBook = req.body.requestedBook
+      return doc
+    }).then((result)=>{
+    // console.log(result)
+      res.header("Content-Type", 'application/json')
+      res.send(JSON.stringify({status:'Registered the request ' + req.body.reqId}))
+    })
+  }
 })
 
 app.get('/bookrequestlist', (req, res) => {
