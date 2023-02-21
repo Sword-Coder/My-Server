@@ -669,7 +669,17 @@ app.post('/returnbook', (req, res) => {
   //Make a function that pushes to returned books database.
 })
 
-
+// This gives a list of books returned.
+app.get('/returnedbookList', (req, res) => {
+  remotedb.query('temp/returnedBooks', {include_docs: true}).then((result) => {
+    books = []
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((returned) => {
+    books.push(returned.doc)
+    })
+    res.header("Content-Type", "application/json")
+    res.send(books)
+  })
+})
 //PA API >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/saveSettings', (req, res)=>{
   console.log(req.body)
