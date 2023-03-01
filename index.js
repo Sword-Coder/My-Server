@@ -340,7 +340,7 @@ app.post('/updateBook'), (req, res) => {
 
 //Book Requests >>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/bookrequest', (req, res) => {
-  console.log(req.body)
+  //console.log(req.body)
   if(req.body.requestedBook.bookTitle){
     remotedb.upsert(req.body.reqId, (doc)=>{
       doc.type = req.body.type
@@ -373,8 +373,8 @@ app.get('/bookrequestlist', (req, res) => {
   //console.log()
   remotedb.query('temp/reqbook', {include_docs: true}).then((result) => {
     books = []
-    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((book) => {
-    books.push(book.doc)
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((reqbook) => {
+    books.push(reqbook.doc)
     })
     res.header("Content-Type", "application/json")
     res.send(books)
@@ -425,6 +425,7 @@ var days = ["Sunday", "Monday", "Tuesday", "Wenesday", "Thursday", "Friday", "Sa
         day: "2-digit"
    }
   var newDate = currentDate.toLocaleString("en-US", newDateOptions );
+  var todaydate = new Date().toLocaleString("en-US", newDateOptions)
   //res.send(JSON.stringify({status:"Please Return on " + currentDate.setDate(currentDate.getDate() + 30)}))
   //console.log(newDate)
 
@@ -493,9 +494,9 @@ app.post('/approve', (req, res) => {
     //console.log(doc)
     if (err) {return console.log(err);}
 
-    var updateuserBorrowedBooks = req.body.approved.requestedBook.title
+    var updateuserBorrowedBooks = req.body.approved.requestedBook.bookTitle
     var docupdate = doc.borrowed
-    console.log(docupdate)
+    //console.log(docupdate)
     var constBorrowed = []
     if (!doc.borrowed || doc.borrowed === null) {
       remotedb.put({
@@ -509,10 +510,10 @@ app.post('/approve', (req, res) => {
         email: doc.email,
         birthdate: doc.birthdate,
         status: doc.status,
-        borrowed: req.body.approved.requestedBook.title
+        borrowed: req.body.approved.requestedBook.bookTitle
         })
     }else if(Array.isArray(docupdate)){
-      var updateuserBorrowedBooks = [req.body.approved.requestedBook.title]
+      var updateuserBorrowedBooks = [req.body.approved.requestedBook.bookTitle]
       var docupdate = doc.borrowed
       constBorrowed = docupdate.concat(updateuserBorrowedBooks)
     remotedb.put({
@@ -576,11 +577,13 @@ app.get('/approvedbooklist', (req, res) => {
   //console.log()
   remotedb.query('temp/approvedBook', {include_docs: true}).then((result) => {
     books = []
-    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((book) => {
-    books.push(book.doc)
+    result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((approvedbook) => {
+    books.push(approvedbook.doc)
     })
     res.header("Content-Type", "application/json")
     res.send(books)
+
+    console.log(books)
   })
 })
 
@@ -615,7 +618,7 @@ app.post('/returnbook', (req, res) => {
     updateBBooks = matchedUser
     //console.log(updateBBooks[0].doc._id)
  
-    //console.log(updateUBooks)
+    //console.log(updateBBooks)
 
     
   remotedb.get(updateBBooks[0].doc._id, (err, doc)=>{
@@ -637,7 +640,7 @@ app.post('/returnbook', (req, res) => {
 
     var i = 0;
     while (i < filtered.length) {
-    if (filtered[i] === req.body.bookborrowed.bookDetails.requestedBook.title) {
+    if (filtered[i] === req.body.bookborrowed.bookDetails.requestedBook.bookTitle) {
       filtered.splice(i, 1);
     } else {
       ++i;
@@ -667,6 +670,19 @@ app.post('/returnbook', (req, res) => {
   })
 
   //Make a function that pushes to returned books database.
+  remotedb.upsert(req.body.returnId, (doc)=>{
+    doc.id = req.body.returnId
+    doc.type = req.body.type
+    doc.expiry = newDate,
+    doc.returnedDate = todaydate,
+    doc.bookDetails = req.body.bookborrowed.bookDetails
+    return doc
+  }).then((result)=>{
+    //console.log(result)
+    //res.header("Content-Type", 'application/json')
+    //res.send(JSON.stringify({status:'Approved Book ' + req.body.reqId}))
+  })
+
 })
 
 // This gives a list of books returned.
@@ -674,12 +690,14 @@ app.get('/returnedbookList', (req, res) => {
   remotedb.query('temp/returnedBooks', {include_docs: true}).then((result) => {
     books = []
     result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((returned) => {
+      console.log(returned)
     books.push(returned.doc)
     })
     res.header("Content-Type", "application/json")
     res.send(books)
   })
 })
+
 //PA API >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 app.post('/saveSettings', (req, res)=>{
   console.log(req.body)
