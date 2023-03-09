@@ -1,12 +1,13 @@
 const app = require('express')();
 const express = require('express')
 const path = require('path');
+
 //const uuid = require('uuid')();
 // Cors is for limiting the access of unrecognized ip addressess and users.
 const cors = require('cors');
 
 app.use(cors({
-    origin: ['http://localhost:8080','http://localhost:8081',]
+    origin: ['http://localhost:8080','http://localhost:8081','https://library.kerusso.app', 'https://library.kerusso.app/#/Library']
 }));
 //'http://localhost:8080 or 8082 for my home'
 
@@ -42,8 +43,8 @@ db.sync(remotedb, {
 //console.log(remotedb.info())
 */
 
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+//app.set('views', path.join(__dirname, 'views'));
+//app.set('view engine', 'ejs'); 
 
 app.set('trust proxy', true)
 app.use('/images', express.static('./Images')) //Making the images public so that it's accessible. // Work an api that sends a photo.
@@ -54,9 +55,9 @@ app.listen(PORT)
 
 
 //Someday this is where I will put my function to display my app, electron, pwa, so on.
-app.get('/', (req, res) => {
+/*app.get('/', (req, res) => {
   res.render('upload.ejs')
-})
+})*/
 
 
 // Sign up
@@ -814,7 +815,7 @@ app.get('*', (req, res)=>{
   }else{
 
     res.header("Content-Type", 'application/json')
-    res.send(JSON.stringify({status:'what are you looking for?'}))
+    res.send(JSON.stringify({status:'what are you looking for dufus?'}))
     //res.render('pages/upload')
   }
 })
