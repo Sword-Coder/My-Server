@@ -677,6 +677,8 @@ app.post('/returnbook', (req, res) => {
     doc.expiry = newDate,
     doc.returnedDate = todaydate,
     doc.bookDetails = req.body.bookborrowed.bookDetails
+    doc.userrating = req.body.userrating
+    doc.bookComments = req.body.bookComments
     return doc
   }).then((result)=>{
     //console.log(result)
