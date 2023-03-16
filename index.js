@@ -229,7 +229,7 @@ app.get('/getNames', (req, res) =>{
 //Multer >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //This is will be the package needed for uploading an image. I will be using the images for the display of top rated books.
 const { dirname } = require('path');
-
+// I need to learn on saving files and user images.
 const multer = require('multer');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
