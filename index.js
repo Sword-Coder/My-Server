@@ -281,6 +281,10 @@ app.get('/getBooks',(req, res) =>{
   })
 
 })
+// I need to make an api that searches for books.
+app.get('/search', (req, res) => {
+  
+})
 
 //Need to make an api that removes or deletes a book in the database and respond back with a new array list of users.
 app.post('/removeBook', (req, res) => {
