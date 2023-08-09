@@ -7,7 +7,7 @@ const path = require('path');
 const cors = require('cors');
 
 app.use(cors({
-    origin: ['http://localhost:8080','http://localhost:8081','https://library.kerusso.app', 'https://library.kerusso.app/#/Library']
+    origin: ['http://localhost:8080','http://localhost:8083','https://library.kerusso.app', 'https://library.kerusso.app/#/Library']
 }));
 //'http://localhost:8080 or 8082 for my home'
 
@@ -26,6 +26,7 @@ PouchDB.plugin(require('pouchdb-find'))
 //const localDB = new PouchDB('localDB',)
 const remotedb = new PouchDB("http://admin:Sword-9-Code@178.128.122.138:5984/library_db")
 const paboothdb = new PouchDB("http://admin:Sword-9-Code@178.128.122.138:5984/pa")
+const routedb = new PouchDB("https://admin:Sword-9-Code@172.128.122.138.5984/maslogroute_db")
 /* 
 // This will only by used if you are trying to sync the local and the remotedb together. 
 const remotedb = new PouchDB('https://admin:pass@ip:5984/databasename', )
