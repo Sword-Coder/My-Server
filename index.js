@@ -7,7 +7,9 @@ const path = require('path');
 const cors = require('cors');
 
 app.use(cors({
-    origin: ['http://localhost:8080','http://localhost:8083','https://library.kerusso.app', 'https://library.kerusso.app/#/Library']
+    origin: ['https://www.themission.site/#/','http://localhost:8080','http://localhost:8083','https://library.kerusso.app', 'https://library.kerusso.app/#/Library', 'http://192.168.255.243:8080'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'] // Add any custom headers you need
 }));
 //'http://localhost:8080 or 8082 for my home'
 
@@ -24,9 +26,9 @@ PouchDB.plugin(require('pouchdb-find'))
 
 // This is my database
 //const localDB = new PouchDB('localDB',)
-const remotedb = new PouchDB("http://admin:Sword-9-Code@178.128.122.138:5984/library_db")
-const paboothdb = new PouchDB("http://admin:Sword-9-Code@178.128.122.138:5984/pa")
-const routedb = new PouchDB("https://admin:Sword-9-Code@172.128.122.138.5984/maslogroute_db")
+const remotedb = new PouchDB("http://root:Sharpest2Mind@147.182.253.3:5984/library_db")
+//const paboothdb = new PouchDB("http://admin:Sword-9-Code@178.128.122.138:5984/pa")
+//const routedb = new PouchDB("https://admin:Sword-9-Code@172.128.122.138.5984/maslogroute_db")
 /* 
 // This will only by used if you are trying to sync the local and the remotedb together. 
 const remotedb = new PouchDB('https://admin:pass@ip:5984/databasename', )
@@ -48,7 +50,7 @@ db.sync(remotedb, {
 //app.set('view engine', 'ejs'); 
 
 app.set('trust proxy', true)
-app.use('/images', express.static('./Images')) //Making the images public so that it's accessible. // Work an api that sends a photo.
+app.use('/api/images', express.static('./Images')) //Making the images public so that it's accessible. // Work an api that sends a photo.
 app.use(bodyParser.json({verify: (req, res, buf)=>{req.rawBody = buf}}))
 app.use(bodyParser.urlencoded({extended:false}))
 
@@ -62,10 +64,10 @@ app.listen(PORT)
 
 
 // Sign up
-app.post('/login', (req,res) => {
+app.post('/api/login', (req,res) => {
   //console.log(req.body)
   remotedb.query('temp/librarians', {include_docs: true}).then((result) => {
-    //console.log(result)
+    console.log(result)
     var stat
     librarians = []
     result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((librarian) => {
@@ -90,7 +92,7 @@ app.post('/login', (req,res) => {
 })
 
 //Confirmation for login
-app.get('/login', (req, res)=>{
+app.get('/api/login', (req, res)=>{
   //console.log(req.body)
   //console.log(localDB)
   res.header("Content-Type", 'application/json')
@@ -101,7 +103,8 @@ app.get('/login', (req, res)=>{
 
 // Add Borrowers >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 // This is for adding borrowers and users to the database.
-app.post('/saveName', (req, res)=>{
+app.post('/api/saveName', (req, res)=>{
+  res.send(JSON.stringify({status:'Working on it!'}))
   /*remotedb.uuid().then((ids) => {
     const id = ids[0]
     couch.insert('names', {
@@ -119,13 +122,14 @@ app.post('/saveName', (req, res)=>{
       res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
     })
   })*/
+  console.log(req.body)
   remotedb.upsert(req.body.borrowerid, (doc)=>{
     /*if(!doc.hasOwnProperty('names')){
       doc.names = []
     }
     doc.names.push({ 
     "uid": req.body.borrowerid,
-    "type": req.body.type,
+    "type": req.body.type,  
     "firstName": req.body.firstName,
     "lastName": req.body.lastName,
     "phoneNumber": req.body.phoneNumber,
@@ -133,6 +137,7 @@ app.post('/saveName', (req, res)=>{
     "birthdate": req.body.birthdate,
     "status": req.body.status})
     return doc;*/ //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> The outcome of this code can be seen in the database called "names."
+    doc.created = req.body.created
     doc.uid = req.body.borrowerid,
     doc.type = req.body.type,
     doc.firstName = req.body.firstName,
@@ -143,14 +148,16 @@ app.post('/saveName', (req, res)=>{
     doc.status = req.body.status
     return doc
   }).then((result)=>{
-    //console.log(result)
+    console.log(result)
     res.header("Content-Type", 'application/json')
     res.send(JSON.stringify({status:'Saved ' + req.body.firstName + ' ' + req.body.lastName + ' ' + req.body.phoneNumber + ' ' + req.body.email + ' ' + req.body.birthdate}))
-  })
+  }).catch(error => {
+        console.error('Fetch error:', error);
+    });
 })
 
 // This is my api to update names
-app.post('/updateName', (req, res)=>{
+app.post('/api/updateName', (req, res)=>{
   remotedb.get(req.body.borrowerid, (err, doc)=>{
     if (err) {return consonle.log(err);}
     if(doc.borrowed){
@@ -191,7 +198,7 @@ app.post('/updateName', (req, res)=>{
 
 
 //Need to make an api that removes or deletes a library user in the database and respond back with a new array list of users.
-app.post('/removeBorrowers', (req, res) => {
+app.post('/api/removeBorrowers', (req, res) => {
   //console.log(req)
   remotedb.get(req.body.id, function(err, doc) {
     if (err) { return console.log(err); }
@@ -209,7 +216,7 @@ app.post('/removeBorrowers', (req, res) => {
 
 //This is my api for getting the data list for the names of my library users
 const viewUrl = "_utils/#database/library_db/names/all?limit=20&reduce=false"
-app.get('/getNames', (req, res) =>{
+app.get('/api/getNames', (req, res) =>{
   //This is my first alternative to getting my array of users
   /*remotedb.get('names', viewUrl).then((result) =>{
     console.log(result)
@@ -244,10 +251,10 @@ const storage = multer.diskStorage({
   }
 })
 const maxSize = 20 * 1024 * 1024
-const upload = multer({storage: storage});
+const upload = multer({storage: storage, limit: {fileSize: maxSize}}); // Set the maximum file size to 20MB
 
 // This is where I get save my book entry. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
+app.post('/api/saveBook', upload.single('bookCover'), (req, res)=>{
   //console.log(req)
   //console.log(req.body)
     
@@ -271,7 +278,7 @@ app.post('/saveBook', upload.single('bookCover'), (req, res)=>{
   
 })
 //const viewUrl2 = "_utils/#database/pa/books/all?limit=20&reduce=false"
-app.get('/getBooks',(req, res) =>{
+app.get('/api/getBooks',(req, res) =>{
   remotedb.query('temp/booksByTitle', {include_docs: true}).then((result) => {
     books = []
     result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((book) => {
@@ -283,12 +290,12 @@ app.get('/getBooks',(req, res) =>{
 
 })
 // I need to make an api that searches for books.
-app.get('/search', (req, res) => {
+app.get('/api/search', (req, res) => {
   
 })
 
 //Need to make an api that removes or deletes a book in the database and respond back with a new array list of users.
-app.post('/removeBook', (req, res) => {
+app.post('/api/removeBook', (req, res) => {
   //console.log(req) 
 
   remotedb.get(req.body.bookid, function(err, doc) {
@@ -306,7 +313,7 @@ app.post('/removeBook', (req, res) => {
 })
 
 const viewUrl2 = "_utils/#database/library_db/books/all?limit=20&reduce=false"
-app.post('/updateBook'), (req, res) => {
+app.post('/api/updateBook'), (req, res) => {
   remotedb.get(req.body.bookid, (err, doc)=>{
     if (err) {return console.log(err);}
     if(!doc.bookCover) {
@@ -345,7 +352,7 @@ app.post('/updateBook'), (req, res) => {
 }
 
 //Book Requests >>>>>>>>>>>>>>>>>>>>>>>>>
-app.post('/bookrequest', (req, res) => {
+app.post('/api/bookrequest', (req, res) => {
   //console.log(req.body)
   if(req.body.requestedBook.bookTitle){
     remotedb.upsert(req.body.reqId, (doc)=>{
@@ -375,7 +382,7 @@ app.post('/bookrequest', (req, res) => {
   }
 })
 
-app.get('/bookrequestlist', (req, res) => {
+app.get('/api/bookrequestlist', (req, res) => {
   //console.log()
   remotedb.query('temp/reqbook', {include_docs: true}).then((result) => {
     books = []
@@ -388,7 +395,7 @@ app.get('/bookrequestlist', (req, res) => {
 
 })
 
-app.post('/disapprove', (req, res) => {
+app.post('/api/disapprove', (req, res) => {
   //console.log(req.body)
   //console.log(req.body.disapprovedbook._id) 
   remotedb.get(req.body.disapprovedbook._id, function(err, doc) {
@@ -447,7 +454,7 @@ var days = ["Sunday", "Monday", "Tuesday", "Wenesday", "Thursday", "Friday", "Sa
   getMilliseconds()	Get millisecond (0-999)
   getTime()	Get time (milliseconds since January 1, 1970)*/
     
-app.post('/approve', (req, res) => {
+app.post('/api/approve', (req, res) => {
 //console.log(req.body)
 //remove the data from the pending of book approval.
   remotedb.get(req.body.approved._id, function(err, doc) {
@@ -579,7 +586,7 @@ app.post('/approve', (req, res) => {
 
 // Make an api that updates the library users borrowed books and updates the copies registered in the database.
 
-app.get('/approvedbooklist', (req, res) => {
+app.get('/api/approvedbooklist', (req, res) => {
   //console.log()
   remotedb.query('temp/approvedBook', {include_docs: true}).then((result) => {
     books = []
@@ -594,7 +601,7 @@ app.get('/approvedbooklist', (req, res) => {
 })
 
 //This api approves that the book has been returned.
-app.post('/returnbook', (req, res) => {
+app.post('/api/returnbook', (req, res) => {
   //console.log(req.body)
 
   remotedb.get(req.body.bookborrowed._id, function(err, doc) {
@@ -694,7 +701,7 @@ app.post('/returnbook', (req, res) => {
 })
 
 // This gives a list of books returned.
-app.get('/returnedbookList', (req, res) => {
+app.get('/api/returnedbookList', (req, res) => {
   remotedb.query('temp/returnedBooks', {include_docs: true}).then((result) => {
     books = []
     result.rows.sort((a, b) => { return a.key.toLowerCase() < b.key.toLowerCase() ? -1 : 0 }).forEach((returned) => {
@@ -707,7 +714,7 @@ app.get('/returnedbookList', (req, res) => {
 })
 
 //PA API >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-app.post('/saveSettings', (req, res)=>{
+app.post('/api/saveSettings', (req, res)=>{
   console.log(req.body)
     
   paboothdb.upsert(req.body.settingId, (doc)=>{
@@ -735,7 +742,7 @@ app.post('/saveSettings', (req, res)=>{
   
 })
 
-app.get('/getSettings', (req, res) =>{
+app.get('/api/getSettings', (req, res) =>{
   //console.log(req)
   paboothdb.query('temp/group', {include_docs: true}).then((result) => {
     console.log(result)
@@ -748,7 +755,7 @@ app.get('/getSettings', (req, res) =>{
   })
 })
 
-app.post('/updateSettings'), (req, res) => {
+app.post('/api/updateSettings'), (req, res) => {
 
   paboothdb.get(req.body.settingId, (err, doc)=>{
     if (err) {return console.log(err);}
@@ -778,7 +785,7 @@ app.post('/updateSettings'), (req, res) => {
   })
 }
 
-app.post('/removeSetting', (req, res) => {
+app.post('/api/removeSetting', (req, res) => {
   //console.log(req.body) 
 
   paboothdb.get(req.body.settingId, function(err, doc) {
@@ -816,6 +823,7 @@ app.get('*', (req, res)=>{
     })
 
   }else if(req.url.startsWith('/see')){
+    res.send("Hello")
     remotedb.info().then(function (info) {
       console.log(info);
     })
